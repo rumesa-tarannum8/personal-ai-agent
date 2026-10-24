@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -47,3 +48,25 @@ class MemoryRetrieveOut(BaseModel):
 
 class ErrorOut(BaseModel):
     detail: str
+
+
+class ChatRequest(BaseModel):
+    message: str = Field(..., min_length=1, max_length=4000)
+    session_id: Optional[str] = Field(
+        default=None, min_length=1, max_length=100
+    )
+
+    @field_validator("message")
+    @classmethod
+    def strip_message(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("message must not be blank")
+        return stripped
+
+
+class ChatResponse(BaseModel):
+    session_id: str
+    reply: str
+    memories_used: list[MemoryHit]
+
